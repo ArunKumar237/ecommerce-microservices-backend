@@ -1,0 +1,44 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ecom}
+      POSTGRES_USER: ${POSTGRES_USER:-ecom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecompass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    command: redis-server --save 900 1
+
+  web:
+    build:
+      context: ../backend
+    volumes:
+      - ../backend:/app
+      - static_volume:/app/static
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build:
+      context: ../backend
+    command: celery -A config worker --loglevel=info
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ../backend:/app
+
+volumes:
+  pgdata:
+  static_volume:
