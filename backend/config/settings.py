@@ -10,6 +10,8 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "unsafe-secret")
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
+DEBUG = True
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -39,8 +41,8 @@ ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [{ "BACKEND": "django.template.backends.django.DjangoTemplates", "DIRS": [], "APP_DIRS": True, "OPTIONS": {"context_processors": ["django.template.context_processors.debug","django.template.context_processors.request","django.contrib.auth.context_processors.auth","django.contrib.messages.context_processors.messages"],},}]
 
-WSGI_APPLICATION = "core.wsgi.application"
-ASGI_APPLICATION = "core.asgi.application"
+WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
     "default": {
@@ -83,6 +85,10 @@ REST_FRAMEWORK = {
 }
 
 STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
 STATIC_ROOT = BASE_DIR / "static"
+
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# STATICFILES_DIRS = [BASE_DIR / "static"]
+AUTH_USER_MODEL = "users.User"

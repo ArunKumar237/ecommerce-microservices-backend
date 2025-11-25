@@ -9,3 +9,4 @@ django-redis
 stripe
 razorpay
 python-dotenv
+Pillow
