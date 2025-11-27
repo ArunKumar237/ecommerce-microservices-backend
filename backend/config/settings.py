@@ -84,6 +84,34 @@ REST_FRAMEWORK = {
     },
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "DEBUG",  # <-- required
+        },
+        "__main__": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+        "payments": {  # Add your app logger
+            "handlers": ["console"],
+            "level": "DEBUG",
+        },
+    },
+}
+
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 
@@ -92,3 +120,13 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 AUTH_USER_MODEL = "users.User"
+
+# stripe settings
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+# razorpay settings
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET")

@@ -1,6 +1,8 @@
 from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.views import APIView
+from django.utils import timezone
 
 from .models import Cart, CartItem, Order, OrderItem
 from .serializers import (
@@ -84,12 +86,38 @@ class OrderViewSet(viewsets.ModelViewSet):
                 quantity=item.quantity,
                 price_at_purchase=item.product.price,
             )
-
-            # deduct inventory
-            item.product.inventory -= item.quantity
-            item.product.save()
-
-        # clear cart
+        
+        # Clear the cart after creating order (optional — OR mark "locked")
         cart.items.all().delete()
-
         return Response(OrderSerializer(order).data, status=201)
+
+class UpdateOrderStatusView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def patch(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
+
+        new_status = request.data.get("status")
+
+        if new_status not in dict(Order.STATUS_CHOICES):
+            return Response({"error": "Invalid status"}, status=400)
+
+        # Special status handling
+        if new_status == "shipped":
+            order.status = "shipped"
+            order.tracking_number = request.data.get("tracking_number")
+            order.courier = request.data.get("courier")
+            order.shipped_at = timezone.now()
+
+        elif new_status == "delivered":
+            order.status = "delivered"
+            order.delivered_at = timezone.now()
+
+        else:
+            order.status = new_status  # cancelled, refunded, processing, etc.
+
+        order.save()
+        return Response({"message": f"Order updated to {order.status}"}, status=200)
