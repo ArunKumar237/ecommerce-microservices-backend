@@ -39,6 +39,14 @@ jobs:
           pip install --upgrade pip
           pip install -r backend/requirements.txt
 
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 5432 && echo "Postgres is up!" && break
+            echo "Waiting for Postgres..."
+            sleep 2
+          done
+
       - name: Start Celery Worker (background)
         run: |
           cd backend
