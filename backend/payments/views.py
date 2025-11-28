@@ -2,9 +2,11 @@ import hmac, hashlib
 import stripe, razorpay
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from orders.tasks import send_order_confirmation_email, generate_and_email_invoice
 from django.conf import settings
 from orders.models import Order
+from django.utils import timezone
 import logging
 
 logger = logging.getLogger(__name__)
@@ -186,11 +188,62 @@ class RazorpayWebhookView(APIView):
                         product.save()
 
                     order.status = "paid"
+                    order.paid_at = timezone.now()
+                    order.razorpay_order_id = razorpay_order_id
+                    order.razorpay_payment_id = payment_data.get("id")
                     order.save()
+
+                    # background tasks
+                    send_order_confirmation_email.delay(order.id)
+                    generate_and_email_invoice.delay(order.id)
 
                 return Response({"message": "Order updated"}, status=200)
 
             except Order.DoesNotExist:
                 return Response({"error": "Order not found"}, status=404)
+            
+        elif event == "refund.processed":
+            refund_data = payload["payload"]["refund"]["entity"]
+            payment_id = refund_data.get("payment_id")
 
+            try:
+                order = Order.objects.get(razorpay_payment_id=payment_id)
+            except Order.DoesNotExist:
+                return Response({"error": "Order not found for refund"}, status=404)
+
+            order.status = "refunded"
+            order.save()
+
+            return Response({"message": "Order marked as refunded"}, status=200)
+        
         return Response({"message": "Ignored event"}, status=200)
+    
+
+class RefundOrderView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, order_id):
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return Response({"error": "Order not found"}, status=404)
+
+        if order.status not in ["paid", "shipped"]:
+            return Response({"error": "Refund not allowed in this state"}, status=400)
+
+        if not order.razorpay_payment_id:
+            return Response({"error": "No payment id stored for this order"}, status=400)
+
+        try:
+            refund = client.payment.refund({
+                "payment_id": order.razorpay_payment_id,
+                "amount": int(order.total_amount * 100),
+            })
+        except razorpay.errors.BadRequestError as e:
+            return Response({"error": str(e)}, status=400)
+
+        # optional: mark as refunded here OR wait for webhook
+        order.status = "refunded"
+        order.save()
+
+        return Response({"message": "Refund initiated", "refund": refund}, status=200)

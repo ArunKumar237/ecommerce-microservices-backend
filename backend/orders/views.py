@@ -1,8 +1,11 @@
 from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from orders.tasks import send_order_status_update_email
 from rest_framework.views import APIView
 from django.utils import timezone
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncDate
 
 from .models import Cart, CartItem, Order, OrderItem
 from .serializers import (
@@ -94,6 +97,16 @@ class OrderViewSet(viewsets.ModelViewSet):
 class UpdateOrderStatusView(APIView):
     permission_classes = [IsAdminUser]
 
+    VALID_FLOW = {
+        "pending": ["paid", "cancelled"],
+        "paid": ["processing", "shipped", "cancelled"],
+        "processing": ["shipped", "cancelled"],
+        "shipped": ["delivered"],
+        "delivered": [],
+        "cancelled": [],
+        "refunded": []
+    }
+
     def patch(self, request, order_id):
         try:
             order = Order.objects.get(id=order_id)
@@ -105,19 +118,53 @@ class UpdateOrderStatusView(APIView):
         if new_status not in dict(Order.STATUS_CHOICES):
             return Response({"error": "Invalid status"}, status=400)
 
-        # Special status handling
+        allowed_next_steps = self.VALID_FLOW.get(order.status, [])
+
+        if new_status not in allowed_next_steps:
+            return Response(
+                {"error": f"Invalid status transition: {order.status} → {new_status}"},
+                status=400
+            )
+
+        # Handle status updates
         if new_status == "shipped":
-            order.status = "shipped"
             order.tracking_number = request.data.get("tracking_number")
             order.courier = request.data.get("courier")
             order.shipped_at = timezone.now()
 
         elif new_status == "delivered":
-            order.status = "delivered"
             order.delivered_at = timezone.now()
 
-        else:
-            order.status = new_status  # cancelled, refunded, processing, etc.
-
+        order.status = new_status
         order.save()
+
+        send_order_status_update_email.delay(order.id, order.status)
         return Response({"message": f"Order updated to {order.status}"}, status=200)
+
+
+class AdminOrderStatsView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        qs = Order.objects.all()
+
+        total_orders = qs.count()
+        total_revenue = qs.filter(status__in=["paid", "shipped", "delivered", "refunded"]) \
+                          .aggregate(total=Sum("total_amount"))["total"] or 0
+
+        by_status = qs.values("status").annotate(count=Count("id")).order_by()
+
+        last_7_days = (
+            qs.filter(created_at__gte=timezone.now() - timezone.timedelta(days=7))
+              .annotate(date=TruncDate("created_at"))
+              .values("date")
+              .annotate(count=Count("id"), revenue=Sum("total_amount"))
+              .order_by("date")
+        )
+
+        return Response({
+            "total_orders": total_orders,
+            "total_revenue": total_revenue,
+            "by_status": list(by_status),
+            "last_7_days": list(last_7_days),
+        })

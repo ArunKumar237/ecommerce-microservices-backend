@@ -10,3 +10,4 @@ stripe
 razorpay
 python-dotenv
 Pillow
+reportlab

@@ -41,8 +41,36 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True)
+    items = serializers.SerializerMethodField()
+    timeline = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ("id", "status", "total_amount", "created_at", "items")
+        fields = [
+            "id",
+            "status",
+            "total_amount",
+            "timeline",
+            "tracking_number",
+            "courier",
+            "items",
+            "created_at"
+        ]
+
+    def get_items(self, obj):
+        return [
+            {
+                "product": item.product.name,
+                "price": item.price_at_purchase,
+                "quantity": item.quantity,
+            }
+            for item in obj.items.all()
+        ]
+
+    def get_timeline(self, obj):
+        return {
+            "created_at": obj.created_at,
+            "paid_at": getattr(obj, "paid_at", None),
+            "shipped_at": obj.shipped_at,
+            "delivered_at": obj.delivered_at,
+        }

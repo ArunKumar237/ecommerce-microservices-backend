@@ -45,31 +45,21 @@ class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # Timestamps for process visibility
+    paid_at = models.DateTimeField(null=True, blank=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
 
     # New tracking fields
     tracking_number = models.CharField(max_length=100, null=True, blank=True)
     courier = models.CharField(max_length=50, null=True, blank=True)
 
-    # Timestamps for process visibility
-    shipped_at = models.DateTimeField(null=True, blank=True)
-    delivered_at = models.DateTimeField(null=True, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Order({self.id}) - {self.user.username}"
-
-    def mark_as_shipped(self, tracking_no=None, courier=None):
-        self.status = "shipped"
-        self.tracking_number = tracking_no
-        self.courier = courier
-        self.shipped_at = timezone.now()
-        self.save()
-
-    def mark_as_delivered(self):
-        self.status = "delivered"
-        self.delivered_at = timezone.now()
-        self.save()
 
 
 class OrderItem(models.Model):
