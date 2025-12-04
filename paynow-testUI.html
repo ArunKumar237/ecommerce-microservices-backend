@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Razorpay Test</title>
+</head>
+
+<body>
+
+    <button id="pay-btn">Pay Now</button>
+
+    <!-- Razorpay Checkout Script -->
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <script>
+        document.getElementById("pay-btn").addEventListener("click", async function () {
+
+            // Simulated backend response
+            response = {
+                "order_id": "order_RnU4xwrX6xUihM",
+                "key_id": "rzp_test_RkLbV92elrMA7u",
+                "amount": 4999,
+                "currency": "INR"
+            }
+
+            var options = {
+                "key": response.key_id,
+                "order_id": response.order_id,
+                "amount": response.amount,
+                "currency": response.currency,
+                "name": "My Store",
+
+                "handler": async function (paymentResponse) {
+
+                    const formData = new FormData();
+                    formData.append("razorpay_order_id", paymentResponse.razorpay_order_id);
+                    formData.append("razorpay_payment_id", paymentResponse.razorpay_payment_id);
+                    formData.append("razorpay_signature", paymentResponse.razorpay_signature);
+
+                    try {
+                        const res = await fetch("http://localhost:80/api/payments/razorpay/verify/", {
+                            method: "POST",
+                            body: formData,
+                        });
+
+                        // 🔹 Safe JSON parser so no popup error anymore
+                        let result;
+                        const text = await res.text();
+                        result = text ? JSON.parse(text) : {};
+
+                        console.log("Backend response:", result);
+
+                        if (res.ok) alert("Payment Successful!");
+                        else alert("Payment Failed: " + (result.error || "Unknown error"));
+
+                    } catch (err) {
+                        console.error("Fetch error:", err);
+                        alert("Payment verification failed");
+                    }
+                }
+            };
+
+            var rzp = new Razorpay(options);
+            rzp.open();
+        });
+    </script>
+
+</body>
+
+</html>

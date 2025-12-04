@@ -1,0 +1,14 @@
+Django>=4.2
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+gunicorn
+psycopg2-binary
+redis
+celery
+django-redis
+stripe
+razorpay
+python-dotenv
+Pillow
+reportlab

@@ -1,0 +1,87 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ecom}
+      POSTGRES_USER: ${POSTGRES_USER:-ecom}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ecompass}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+    - "5431:5432"
+
+  redis:
+    image: redis:7
+    command: redis-server --save 900 1
+
+  web:
+    build:
+      context: ../backend
+    volumes:
+      - ../backend:/app
+      - static_volume:/app/static
+    ports:
+      # - "8000:8000" #(for external access without nginx)
+      - "8000" #(for internal access via nginx)
+    env_file:
+      - ../backend/.env
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile - --error-logfile -"
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build:
+      context: ../backend
+    command: celery -A config worker --loglevel=info
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ../backend:/app
+
+  celery-beat:
+    build:
+      context: ../backend
+    command: celery -A config beat --loglevel=info
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - redis
+      - db
+    volumes:
+      - ../backend:/app
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http web:8000
+    depends_on:
+      - web
+    env_file:
+      - ../backend/.env
+    ports:
+      - "4040:4040" # for ngrok web UI
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - "../backend/nginx/default.conf:/etc/nginx/conf.d/default.conf"
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - web
+
+
+
+volumes:
+  pgdata:
+  static_volume:
+  media_volume:
