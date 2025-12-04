@@ -18,9 +18,9 @@
 
             // Simulated backend response
             response = {
-                "order_id": "order_RkkGABP27s8nu2",
-                "key_id": "rzp_test_xxx",
-                "amount": 8999,
+                "order_id": "order_RnU4xwrX6xUihM",
+                "key_id": "rzp_test_RkLbV92elrMA7u",
+                "amount": 4999,
                 "currency": "INR"
             }
 
@@ -39,7 +39,7 @@
                     formData.append("razorpay_signature", paymentResponse.razorpay_signature);
 
                     try {
-                        const res = await fetch("/api/payments/razorpay/verify/", {
+                        const res = await fetch("http://localhost:80/api/payments/razorpay/verify/", {
                             method: "POST",
                             body: formData,
                         });

@@ -92,15 +92,11 @@ class VerifyRazorpayPayment(APIView):
                 logger.warning("[Razorpay] Unauthorized payment attempt order=%s expected_user=%s", order_id, user_id)
                 return Response({"error": "Unauthorized order claim"}, status=403)
 
-            if order.status != "paid":
-                for item in order.items.all():
-                    item.product.inventory -= item.quantity
-                    item.product.save()
-
-                order.status = "paid"
+            if order.status == "pending":
+                order.status = "processing"  # waiting for official webhook confirmation
                 order.save()
 
-                logger.info("[Razorpay] Order marked paid order=%s user=%s", order.id, user_id)
+                logger.info("[Razorpay] Order marked processing order=%s user=%s", order.id, user_id)
 
             return Response({"status": "success"}, status=200)
 
