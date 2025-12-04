@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from .logging_config import LOGGING_CONFIG as CUSTOM_LOGGING_CONFIG
 
 load_dotenv()  # loads .env in runtime
 
@@ -84,33 +85,8 @@ REST_FRAMEWORK = {
     },
 }
 
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "DEBUG",
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "DEBUG",  # <-- required
-        },
-        "__main__": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "payments": {  # Add your app logger
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-    },
-}
+LOGGING_CONFIG = "logging.config.dictConfig"
+LOGGING = CUSTOM_LOGGING_CONFIG
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"

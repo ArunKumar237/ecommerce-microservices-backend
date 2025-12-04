@@ -1,0 +1,604 @@
+{
+    "info": {
+        "name": "ecommerce-microservices-backend",
+        "description": "Postman collection for backend API based on project urls.py",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "version": "1.0.0"
+    },
+    "item": [
+        {
+            "name": "Users - Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"first_name\": \"First\",\n  \"last_name\": \"Last\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/users/register/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        "register",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Users - Login (obtain token)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"email\": \"user@example.com\", \"password\": \"password123\" }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/users/login/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        "login",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Users - Refresh token",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"refresh\": \"{{refresh_token}}\" }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/users/refresh/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        "refresh",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Users - Ping (health)",
+            "request": {
+                "method": "GET",
+                "url": {
+                    "raw": "{{baseUrl}}/api/users/ping/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "users",
+                        "ping",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Products - List / Create",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/products/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "products",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Products - Retrieve / Update / Delete",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/products/{{product_id}}/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "products",
+                        "{{product_id}}",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Orders - List / Create (ViewSet)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/orders/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "orders",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Orders - Retrieve / Update",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/orders/{{order_id}}/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "orders",
+                        "{{order_id}}",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Cart - Get Cart",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/cart/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "cart",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Cart - Add Item",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"product_id\": {{product_id}}, \"quantity\": 1 }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/cart/add/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "cart",
+                        "add",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Cart - Remove Item",
+            "request": {
+                "method": "DELETE",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/cart/remove/{{product_id}}/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "cart",
+                        "remove",
+                        "{{product_id}}",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Orders - Update Status (admin)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt_admin}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"status\": \"shipped\" }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/orders/{{order_id}}/status/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "orders",
+                        "{{order_id}}",
+                        "status",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Admin - Order Stats",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt_admin}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/orders/admin/stats/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "orders",
+                        "admin",
+                        "stats",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Create Stripe Intent",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"order_id\": {{order_id}} }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/create-intent/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "create-intent",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Stripe Webhook (test)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Stripe-Signature",
+                        "value": "{{stripe_signature}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"type\": \"payment_intent.succeeded\", \"data\": { \"object\": { \"metadata\": { \"order_id\": \"{{order_id}}\" } } } }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/webhook/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "webhook",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Create Razorpay Order",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"order_id\": {{order_id}} }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/razorpay/create-order/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "razorpay",
+                        "create-order",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Verify Razorpay Payment (form)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt}}"
+                    }
+                ],
+                "body": {
+                    "mode": "urlencoded",
+                    "urlencoded": [
+                        {
+                            "key": "razorpay_order_id",
+                            "value": "order_XXXXXXXX",
+                            "type": "text"
+                        },
+                        {
+                            "key": "razorpay_payment_id",
+                            "value": "pay_XXXXXXXX",
+                            "type": "text"
+                        },
+                        {
+                            "key": "razorpay_signature",
+                            "value": "signature_dummy",
+                            "type": "text"
+                        }
+                    ]
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/razorpay/verify/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "razorpay",
+                        "verify",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Razorpay Webhook (test)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"event\": \"payment.captured\", \"payload\": {} }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/razorpay/webhook/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "razorpay",
+                        "webhook",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Payments - Razorpay Refund (admin)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{jwt_admin}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"reason\": \"customer_request\" }"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/payments/razorpay/refund/{{order_id}}/",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "payments",
+                        "razorpay",
+                        "refund",
+                        "{{order_id}}",
+                        ""
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000"
+        },
+        {
+            "key": "jwt",
+            "value": ""
+        },
+        {
+            "key": "jwt_admin",
+            "value": ""
+        },
+        {
+            "key": "order_id",
+            "value": "1"
+        },
+        {
+            "key": "product_id",
+            "value": "1"
+        },
+        {
+            "key": "refresh_token",
+            "value": ""
+        },
+        {
+            "key": "stripe_signature",
+            "value": ""
+        }
+    ]
+}

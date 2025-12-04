@@ -1,3 +1,4 @@
+import logging
 from django.core.cache import cache
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -17,11 +18,14 @@ from .serializers import (
 )
 
 CACHE_TTL = 60 * 5  # 5 minutes
+logger = logging.getLogger(__name__)
+
 
 class SmallResultsSetPagination(PageNumberPagination):
     page_size = 12
     page_size_query_param = "page_size"
     max_page_size = 100
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related("category").all()
@@ -30,48 +34,63 @@ class ProductViewSet(viewsets.ModelViewSet):
     search_fields = ["name", "sku", "description"]
     ordering_fields = ["price", "created_at", "inventory"]
     pagination_class = SmallResultsSetPagination
-    
+
     def get_permissions(self):
-        # write operations → admin only
         if self.action in ["create", "update", "partial_update", "destroy"]:
             return [IsAdminUser()]
-        # read operations → anyone
         return [IsAuthenticatedOrReadOnly()]
 
     def get_serializer_class(self):
-        if self.action in ["list"]:
+        if self.action == "list":
             return ProductListSerializer
-        if self.action in ["retrieve"]:
+        if self.action == "retrieve":
             return ProductDetailSerializer
         return ProductCreateUpdateSerializer
 
-    # Per-view caching for list
+    def _log_request(self, action, extra=None):
+        ip = self.request.META.get("REMOTE_ADDR")
+        user = self.request.user if self.request.user.is_authenticated else "Anonymous"
+        logger.info(
+            f"[ProductViewSet] Action={action} User={user} IP={ip} {extra or ''}"
+        )
+
+    # Cached list
     @method_decorator(cache_page(CACHE_TTL))
     def list(self, request, *args, **kwargs):
+        self._log_request("LIST PRODUCTS")
         return super().list(request, *args, **kwargs)
 
     def retrieve(self, request, *args, **kwargs):
-        # low-level cache example for product detail
         slug = kwargs.get("slug")
         cache_key = f"product_detail:{slug}"
-        data = cache.get(cache_key)
-        if data:
-            return Response(data)
-        resp = super().retrieve(request, *args, **kwargs)
-        cache.set(cache_key, resp.data, CACHE_TTL)
-        return resp
+        self._log_request("RETRIEVE PRODUCT", f"(slug={slug})")
+
+        cached = cache.get(cache_key)
+        if cached:
+            logger.debug(f"[ProductViewSet] CACHE HIT for slug={slug}")
+            return Response(cached)
+
+        logger.debug(f"[ProductViewSet] CACHE MISS for slug={slug}")
+        response = super().retrieve(request, *args, **kwargs)
+        cache.set(cache_key, response.data, CACHE_TTL)
+        return response
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        # invalidate list cache when new product created
+        self._log_request("CREATE PRODUCT", f"(slug={instance.slug})")
         clear_product_caches()
+        logger.debug("[ProductViewSet] Cache cleared after create")
         return instance
 
     def perform_update(self, serializer):
         instance = serializer.save()
+        self._log_request("UPDATE PRODUCT", f"(slug={instance.slug})")
         clear_product_caches()
+        logger.debug("[ProductViewSet] Cache cleared after update")
         return instance
 
     def perform_destroy(self, instance):
+        self._log_request("DELETE PRODUCT", f"(slug={instance.slug})")
         instance.delete()
         clear_product_caches()
+        logger.debug("[ProductViewSet] Cache cleared after delete")
